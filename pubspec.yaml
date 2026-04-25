@@ -1,0 +1,32 @@
+name: leaf_disease_detection_app
+description: A Flutter app for leaf disease detection.
+publish_to: "none"
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  google_fonts: ^4.0.3
+  image_picker: ^0.8.7+6
+  image: ^3.0.0
+  # Use a tflite_flutter compatible with Dart 3.9 / Flutter 3.35
+  tflite_flutter: ^0.11.0
+  # permission_handler upgraded to v12 to ensure Android v2 embedding compatibility
+  permission_handler: ^12.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/leaf_disease_efficientnetb0.tflite
+    - assets/labels.txt
+    # Removed unused test image asset to reduce bundle size
