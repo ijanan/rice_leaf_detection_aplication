@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ValueNotifier<bool> _modelLoaded = ValueNotifier(false);
 
   final TFLiteServiceImplIO _tfliteService = TFLiteServiceImplIO(
-    modelAssetPath: 'assets/leaf_disease_efficientnetb0.tflite',
+    modelAssetPath: 'assets/efficientnetb0.tflite',
     labelsAssetPath: 'assets/labels.txt',
   );
 

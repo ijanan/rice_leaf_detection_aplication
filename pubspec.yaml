@@ -27,6 +27,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/leaf_disease_efficientnetb0.tflite
+    - assets/efficientnetb0.tflite
     - assets/labels.txt
     # Removed unused test image asset to reduce bundle size
