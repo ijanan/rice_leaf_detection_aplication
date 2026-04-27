@@ -118,8 +118,8 @@ class TFLiteServiceImplIO {
         };
       }
 
-        // Resize to model input tensor size.
-        final resized =
+      // Resize to model input tensor size.
+      final resized =
           img.copyResize(decoded, width: _inputWidth, height: _inputHeight);
 
       // Normalize to [0,1]
@@ -141,10 +141,9 @@ class TFLiteServiceImplIO {
       );
 
       // 2️⃣ Prepare output buffer
-        final outputClassCount = _numClasses > 0
-          ? _numClasses
-          : (_labels?.length ?? 1);
-        final output = [List<double>.filled(outputClassCount, 0.0)];
+      final outputClassCount =
+          _numClasses > 0 ? _numClasses : (_labels?.length ?? 1);
+      final output = [List<double>.filled(outputClassCount, 0.0)];
 
       // 3️⃣ Run inference
       _interpreter!.run(input, output);
@@ -157,8 +156,8 @@ class TFLiteServiceImplIO {
           'errors': ['Output tensor has no scores.'],
         };
       }
-      final maxIdx = scores.indexWhere(
-          (v) => v == scores.reduce((a, b) => a > b ? a : b));
+      final maxIdx =
+          scores.indexWhere((v) => v == scores.reduce((a, b) => a > b ? a : b));
       final label = _labels != null && maxIdx < _labels!.length
           ? _labels![maxIdx]
           : 'Unknown';
@@ -167,13 +166,13 @@ class TFLiteServiceImplIO {
       // Sort results for debug
       final results = List.generate(scores.length, (i) {
         return {
-          'label': _labels != null && i < _labels!.length
-              ? _labels![i]
-              : 'Class $i',
+          'label':
+              _labels != null && i < _labels!.length ? _labels![i] : 'Class $i',
           'score': scores[i],
         };
       });
-      results.sort((a, b) => (b['score'] as double).compareTo(a['score'] as double));
+      results.sort(
+          (a, b) => (b['score'] as double).compareTo(a['score'] as double));
 
       return {
         'results': results,

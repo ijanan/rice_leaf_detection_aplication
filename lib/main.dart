@@ -19,7 +19,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseText = GoogleFonts.montserratTextTheme(Theme.of(context).textTheme);
+    final baseText =
+        GoogleFonts.montserratTextTheme(Theme.of(context).textTheme);
     final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32));
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -37,30 +38,37 @@ class MyApp extends StatelessWidget {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: scheme.primary,
           foregroundColor: scheme.onPrimary,
-          extendedTextStyle: baseText.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          extendedTextStyle:
+              baseText.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: scheme.primary,
             foregroundColor: scheme.onPrimary,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            textStyle: baseText.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+            textStyle:
+                baseText.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            textStyle: baseText.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+            textStyle:
+                baseText.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             side: BorderSide(color: scheme.outlineVariant),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            textStyle: baseText.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+            textStyle:
+                baseText.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
         cardTheme: const CardThemeData(
@@ -149,7 +157,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!ok) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('Model failed to load: ${_tfliteService.lastLoadError ?? "Unknown error"}'),
+              content: Text(
+                  'Model failed to load: ${_tfliteService.lastLoadError ?? "Unknown error"}'),
               backgroundColor: Colors.red,
             ));
           }
@@ -183,7 +192,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _confidence.value = 0.0;
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('This photo does not look like a leaf. Please use a clear leaf image.'),
+            content: Text(
+                'This photo does not look like a leaf. Please use a clear leaf image.'),
           ));
         }
         return;
@@ -392,20 +402,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       ValueListenableBuilder<bool>(
                         valueListenable: _modelLoaded,
                         builder: (context, loaded, _) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: loaded ? scheme.secondaryContainer : scheme.errorContainer,
+                            color: loaded
+                                ? scheme.secondaryContainer
+                                : scheme.errorContainer,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(loaded ? Icons.check_circle : Icons.error,
-                                  size: 16, color: loaded ? scheme.onSecondaryContainer : scheme.onErrorContainer),
+                                  size: 16,
+                                  color: loaded
+                                      ? scheme.onSecondaryContainer
+                                      : scheme.onErrorContainer),
                               const SizedBox(width: 6),
                               Text(loaded ? 'Model ready' : 'Model not loaded',
                                   style: textTheme.labelMedium?.copyWith(
-                                    color: loaded ? scheme.onSecondaryContainer : scheme.onErrorContainer,
+                                    color: loaded
+                                        ? scheme.onSecondaryContainer
+                                        : scheme.onErrorContainer,
                                     fontWeight: FontWeight.w600,
                                   )),
                             ],
@@ -426,7 +444,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [scheme.surfaceContainerHighest, scheme.surface],
+                            colors: [
+                              scheme.surfaceContainerHighest,
+                              scheme.surface
+                            ],
                           ),
                         ),
                         child: Center(
@@ -438,16 +459,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ? Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.image_outlined, size: 48, color: scheme.outline),
+                                        Icon(Icons.image_outlined,
+                                            size: 48, color: scheme.outline),
                                         const SizedBox(height: 12),
-                                        Text('No image selected', style: textTheme.titleMedium?.copyWith(color: scheme.outline)),
+                                        Text('No image selected',
+                                            style: textTheme.titleMedium
+                                                ?.copyWith(
+                                                    color: scheme.outline)),
                                         const SizedBox(height: 6),
-                                        Text('Use Camera or Gallery below', style: textTheme.bodySmall?.copyWith(color: scheme.outline)),
+                                        Text('Use Camera or Gallery below',
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                    color: scheme.outline)),
                                       ],
                                     )
                                   : ClipRRect(
                                       borderRadius: BorderRadius.circular(0),
-                                      child: Image.memory(bytes, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                                      child: Image.memory(bytes,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: double.infinity),
                                     ),
                             ),
                           ),
@@ -462,7 +493,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ValueListenableBuilder<Map<String, dynamic>?>(
                     valueListenable: _lastDebug,
                     builder: (context, dbg, _) {
-                      final hasErrors = (dbg?['errors'] as List?)?.isNotEmpty == true;
+                      final hasErrors =
+                          (dbg?['errors'] as List?)?.isNotEmpty == true;
                       return Card(
                         child: Padding(
                           padding: const EdgeInsets.all(14),
@@ -471,20 +503,30 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(hasErrors ? Icons.error_outline : Icons.eco_outlined,
-                                      color: hasErrors ? scheme.error : scheme.primary),
+                                  Icon(
+                                      hasErrors
+                                          ? Icons.error_outline
+                                          : Icons.eco_outlined,
+                                      color: hasErrors
+                                          ? scheme.error
+                                          : scheme.primary),
                                   const SizedBox(width: 8),
-                                  Text('Diagnosis', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                                  Text('Diagnosis',
+                                      style: textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.w700)),
                                   const Spacer(),
                                   ValueListenableBuilder<bool>(
                                     valueListenable: _isLoading,
-                                    builder: (context, loading, _) => AnimatedSwitcher(
-                                      duration: const Duration(milliseconds: 200),
+                                    builder: (context, loading, _) =>
+                                        AnimatedSwitcher(
+                                      duration:
+                                          const Duration(milliseconds: 200),
                                       child: loading
                                           ? const SizedBox(
                                               height: 20,
                                               width: 20,
-                                              child: CircularProgressIndicator(strokeWidth: 2),
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2),
                                             )
                                           : const SizedBox.shrink(),
                                     ),
@@ -500,7 +542,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       valueListenable: _result,
                                       builder: (context, res, _) => Text(
                                         res ?? '—',
-                                        style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                                        style: textTheme.headlineSmall
+                                            ?.copyWith(
+                                                fontWeight: FontWeight.w700),
                                       ),
                                     ),
                                   ),
@@ -508,11 +552,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ValueListenableBuilder<double?>(
                                     valueListenable: _confidence,
                                     builder: (context, conf, _) {
-                                      if (conf == null) return const SizedBox.shrink();
-                                      final pct = (conf * 100).clamp(0, 100).toStringAsFixed(1);
+                                      if (conf == null)
+                                        return const SizedBox.shrink();
+                                      final pct = (conf * 100)
+                                          .clamp(0, 100)
+                                          .toStringAsFixed(1);
                                       return Chip(
                                         label: Text('$pct%'),
-                                        avatar: const Icon(Icons.insights_rounded, size: 18),
+                                        avatar: const Icon(
+                                            Icons.insights_rounded,
+                                            size: 18),
                                       );
                                     },
                                   ),
@@ -529,7 +578,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: Text(
                                     (dbg!['errors'] as List).join('\n'),
-                                    style: textTheme.bodySmall?.copyWith(color: scheme.onErrorContainer),
+                                    style: textTheme.bodySmall?.copyWith(
+                                        color: scheme.onErrorContainer),
                                   ),
                                 ),
                               ],
