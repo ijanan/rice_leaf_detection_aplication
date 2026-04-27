@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:image/image.dart' as img;
 
 import 'tflite_service_impl_io.dart';
 
@@ -98,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ValueNotifier<Map<String, dynamic>?> _lastDebug = ValueNotifier(null);
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
   final ValueNotifier<bool> _modelLoaded = ValueNotifier(false);
+  final ValueNotifier<String?> _modelError = ValueNotifier(null);
 
   final TFLiteServiceImplIO _tfliteService = TFLiteServiceImplIO(
     modelAssetPath: 'assets/efficientnetb0.tflite',
@@ -114,7 +114,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final ok = await _tfliteService.loadModel();
     if (mounted) {
       _modelLoaded.value = ok == true;
+      if (ok == true) {
+        _modelError.value = null;
+        debugPrint('Model loaded successfully');
+      }
       if (!ok && _tfliteService.lastLoadError != null) {
+        _modelError.value = _tfliteService.lastLoadError;
+        debugPrint('Model load failed: ${_tfliteService.lastLoadError}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Model load failed: ${_tfliteService.lastLoadError}'),
@@ -134,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _isLoading.dispose();
     _lastDebug.dispose();
     _modelLoaded.dispose();
+    _modelError.dispose();
     _tfliteService.close();
     super.dispose();
   }
@@ -153,6 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading.value = true;
         final ok = await _tfliteService.loadModel();
         _modelLoaded.value = ok == true;
+        _modelError.value = ok == true ? null : _tfliteService.lastLoadError;
         _isLoading.value = false;
         if (!ok) {
           if (mounted) {
@@ -184,20 +192,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Always show the chosen image
       _imageBytes.value = bytes;
-
-      // Quick leaf filter — if not leaf-like, show message and stop
-      final looksLeaf = _looksLikeLeaf(bytes);
-      if (!looksLeaf) {
-        _result.value = 'Not a leaf image';
-        _confidence.value = 0.0;
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                'This photo does not look like a leaf. Please use a clear leaf image.'),
-          ));
-        }
-        return;
-      }
 
       _isLoading.value = true;
       await _runInference(bytes);
@@ -244,67 +238,6 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       _result.value = 'Error during inference: $e';
       _confidence.value = 0.0;
-    }
-  }
-
-  // Lightweight heuristic to detect if an image looks like a leaf.
-  // Uses HSV hue range for greens and minimum saturation; samples pixels for speed.
-  bool _looksLikeLeaf(Uint8List bytes) {
-    try {
-      final image = img.decodeImage(bytes);
-      if (image == null) return false;
-
-      final w = image.width;
-      final h = image.height;
-      if (w == 0 || h == 0) return false;
-
-      // Sample roughly up to ~64x64 points to keep it fast
-      final sx = (w / 64).ceil().clamp(1, w);
-      final sy = (h / 64).ceil().clamp(1, h);
-
-      int total = 0;
-      int greenish = 0;
-
-      for (int y = 0; y < h; y += sy) {
-        for (int x = 0; x < w; x += sx) {
-          total++;
-          final p = image.getPixel(x, y);
-          final r = img.getRed(p) / 255.0;
-          final g = img.getGreen(p) / 255.0;
-          final b = img.getBlue(p) / 255.0;
-          final mx = [r, g, b].reduce((a, b) => a > b ? a : b);
-          final mn = [r, g, b].reduce((a, b) => a < b ? a : b);
-          final d = mx - mn;
-          if (mx == 0) continue;
-          // HSV conversion (h in degrees)
-          double hDeg;
-          if (d == 0) {
-            hDeg = 0;
-          } else if (mx == r) {
-            hDeg = 60 * (((g - b) / d) % 6);
-          } else if (mx == g) {
-            hDeg = 60 * (((b - r) / d) + 2);
-          } else {
-            hDeg = 60 * (((r - g) / d) + 4);
-          }
-          if (hDeg < 0) hDeg += 360;
-          final s = mx == 0 ? 0.0 : d / mx;
-          final v = mx;
-
-          // Green-ish hue window and minimum saturation/value
-          final isGreenHue = hDeg >= 60 && hDeg <= 170;
-          if (isGreenHue && s >= 0.2 && v >= 0.2) {
-            greenish++;
-          }
-        }
-      }
-
-      if (total == 0) return false;
-      final ratio = greenish / total;
-      // Require at least ~18% greenish pixels to consider it a leaf scene
-      return ratio >= 0.18;
-    } catch (_) {
-      return false;
     }
   }
 
@@ -433,6 +366,39 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
 
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _modelLoaded,
+                    builder: (context, loaded, _) {
+                      return ValueListenableBuilder<String?>(
+                        valueListenable: _modelError,
+                        builder: (context, modelErr, __) {
+                          if (loaded || modelErr == null || modelErr.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: scheme.errorContainer.withAlpha(225),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                modelErr,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: scheme.onErrorContainer,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+
                   const SizedBox(height: 16),
 
                   // Image preview card
@@ -494,7 +460,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     valueListenable: _lastDebug,
                     builder: (context, dbg, _) {
                       final hasErrors =
-                          (dbg?['errors'] as List?)?.isNotEmpty == true;
+                          ((dbg?['errors'] as List?)?.isNotEmpty == true) ||
+                              (dbg?['error'] != null);
                       return Card(
                         child: Padding(
                           padding: const EdgeInsets.all(14),
@@ -552,8 +519,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ValueListenableBuilder<double?>(
                                     valueListenable: _confidence,
                                     builder: (context, conf, _) {
-                                      if (conf == null)
+                                      if (conf == null) {
                                         return const SizedBox.shrink();
+                                      }
                                       final pct = (conf * 100)
                                           .clamp(0, 100)
                                           .toStringAsFixed(1);
@@ -577,7 +545,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    (dbg!['errors'] as List).join('\n'),
+                                    ((dbg?['errors'] as List?)?.join('\n') ??
+                                        (dbg?['error']?.toString() ??
+                                            'Unknown inference error')),
                                     style: textTheme.bodySmall?.copyWith(
                                         color: scheme.onErrorContainer),
                                   ),
