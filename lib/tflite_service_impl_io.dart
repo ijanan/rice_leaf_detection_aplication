@@ -173,7 +173,8 @@ class TFLiteServiceImplIO {
 
     // Tuned conservatively: we only reject images that look *very* unlike a leaf.
     // If this is too strict/loose for your dataset, adjust thresholds in one place.
-    final isLeafLike = (plantishRatio >= 0.10) && (satRatio >= 0.08) && (edgeRatio <= 0.55);
+    final isLeafLike =
+        (plantishRatio >= 0.10) && (satRatio >= 0.08) && (edgeRatio <= 0.55);
 
     return {
       'isLeafLike': isLeafLike,

@@ -239,8 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final isLikelyLeaf = score >= minConfidenceForLeaf &&
               (score - secondScore) >= minTop1Top2Margin;
 
-          _result.value =
-              isLikelyLeaf ? label.toString() : 'Not a leaf image';
+          _result.value = isLikelyLeaf ? label.toString() : 'Not a leaf image';
           _confidence.value = score;
         } else {
           _result.value = 'No valid predictions';
