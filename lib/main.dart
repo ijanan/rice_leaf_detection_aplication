@@ -215,32 +215,17 @@ class _HomeScreenState extends State<HomeScreen> {
       final debug = await _tfliteService.runInferenceDebug(tempFile);
       _lastDebug.value = debug;
 
-      if (debug['notLeaf'] == true) {
-        _result.value = 'Not a leaf image';
-        _confidence.value = null;
-        return;
-      }
-
       if (debug['results'] != null) {
         final top = (debug['results'] as List).cast<Map>();
         if (top.isNotEmpty) {
           final first = top.first;
           final label = first['label'] ?? 'Unknown';
           final score = (first['score'] as num?)?.toDouble() ?? 0.0;
-
-          final secondScore = top.length > 1
-              ? ((top[1]['score'] as num?)?.toDouble() ?? 0.0)
-              : 0.0;
-
-          // Classifiers always return *some* class.
-          // We gate the result so unrelated images don't map to a disease.
-          const minConfidenceForLeaf = 0.75;
-          const minTop1Top2Margin = 0.15;
-          final isLikelyLeaf = score >= minConfidenceForLeaf &&
-              (score - secondScore) >= minTop1Top2Margin;
-
-          _result.value =
-              isLikelyLeaf ? label.toString() : 'Not a leaf image';
+          if (score < 0.3) {
+            _result.value = 'Uncertain ($label)';
+          } else {
+            _result.value = label.toString();
+          }
           _confidence.value = score;
         } else {
           _result.value = 'No valid predictions';

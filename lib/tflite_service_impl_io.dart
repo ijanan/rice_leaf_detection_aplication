@@ -109,82 +109,6 @@ class TFLiteServiceImplIO {
     _interpreter = null;
   }
 
-  Map<String, dynamic> _leafLikenessSignals(img.Image image) {
-    // Heuristic OOD guardrail: the classifier has no "non-leaf" class, so we
-    // add a cheap pre-check to reduce random predictions for unrelated photos.
-    final small = img.copyResize(image, width: 96, height: 96);
-    final w = small.width;
-    final h = small.height;
-
-    int greenish = 0;
-    int brownish = 0;
-    int saturated = 0;
-    int edgeCount = 0;
-    int edgeTotal = 0;
-
-    int lumAt(int x, int y) {
-      final p = small.getPixel(x, y);
-      final r = img.getRed(p);
-      final g = img.getGreen(p);
-      final b = img.getBlue(p);
-      // Approx luminance.
-      return ((299 * r + 587 * g + 114 * b) ~/ 1000);
-    }
-
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        final p = small.getPixel(x, y);
-        final r = img.getRed(p);
-        final g = img.getGreen(p);
-        final b = img.getBlue(p);
-
-        final maxC = math.max(r, math.max(g, b));
-        final minC = math.min(r, math.min(g, b));
-        final sat = maxC - minC;
-        if (maxC > 60 && sat > 35) saturated++;
-
-        // Greenish pixels (common for rice leaves, even in many disease cases).
-        final isGreen = (g > 70) && (g > r + 15) && (g > b + 15);
-        if (isGreen) greenish++;
-
-        // Brown/yellow-ish pixels (covers some diseased leaves).
-        final isBrown = (r > 80) && (g > 55) && (b < 90) && (r - b > 35);
-        if (isBrown) brownish++;
-
-        // Simple edge density from neighbor luminance differences.
-        final lum = ((299 * r + 587 * g + 114 * b) ~/ 1000);
-        if (x + 1 < w) {
-          edgeTotal++;
-          if ((lum - lumAt(x + 1, y)).abs() > 40) edgeCount++;
-        }
-        if (y + 1 < h) {
-          edgeTotal++;
-          if ((lum - lumAt(x, y + 1)).abs() > 40) edgeCount++;
-        }
-      }
-    }
-
-    final total = (w * h).toDouble();
-    final greenRatio = greenish / total;
-    final brownRatio = brownish / total;
-    final plantishRatio = (greenish + brownish) / total;
-    final satRatio = saturated / total;
-    final edgeRatio = edgeTotal == 0 ? 0.0 : (edgeCount / edgeTotal);
-
-    // Tuned conservatively: we only reject images that look *very* unlike a leaf.
-    // If this is too strict/loose for your dataset, adjust thresholds in one place.
-    final isLeafLike = (plantishRatio >= 0.10) && (satRatio >= 0.08) && (edgeRatio <= 0.55);
-
-    return {
-      'isLeafLike': isLeafLike,
-      'greenRatio': greenRatio,
-      'brownRatio': brownRatio,
-      'plantishRatio': plantishRatio,
-      'saturationRatio': satRatio,
-      'edgeRatio': edgeRatio,
-    };
-  }
-
   List<List<List<List<double>>>> _buildInput(img.Image resized,
       {required bool normalizeToUnit}) {
     return List.generate(
@@ -246,16 +170,6 @@ class TFLiteServiceImplIO {
         return {'error': 'Invalid image file'};
       }
 
-      final signals = _leafLikenessSignals(decoded);
-      final isLeafLike = signals['isLeafLike'] == true;
-      if (!isLeafLike) {
-        return {
-          'notLeaf': true,
-          'error': 'Not a leaf image',
-          'signals': signals,
-        };
-      }
-
       // Resize to model input size 224x224.
       final resized = img.copyResize(decoded, width: 224, height: 224);
 
@@ -305,7 +219,6 @@ class TFLiteServiceImplIO {
         'results': results,
         'topLabel': label,
         'confidence': confidence,
-        'signals': signals,
         'preprocess': usingUnit ? 'zero_to_one' : 'zero_to_255',
         'outputShape': outputShape,
       };
